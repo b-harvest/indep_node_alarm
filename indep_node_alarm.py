@@ -51,7 +51,7 @@ while True:
         for height in range(last_height+1,current_height+1):
             precommit_match = False
             try:
-                precommits = json.loads(requests.get("http://localhost:26657/commit?height=" + str(height)).text)["result"]["signed_header"]["commit"]["precommits"]
+                precommits = json.loads(requests.get("http://localhost:26657/commit?height=" + str(height)).text)["result"]["signed_header"]["commit"]["signatures"]
                 for precommit in precommits:
                     try:
                         validator_address = precommit["validator_address"]
