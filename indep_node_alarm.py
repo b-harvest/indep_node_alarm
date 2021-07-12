@@ -26,12 +26,12 @@ while True:
     
     time.sleep(height_increasing_time_period)
 
-    cmd = "sudo <chain deamon> version --long > /home/ubuntu/ansible/<chain deamon>_version.out"
-    subprocess.check_output(cmd, shell=True)
-    cmd = "sudo <chaincli deamon> version --long > /home/ubuntu/ansible/<chaincli deamon>_version.out"
-    subprocess.check_output(cmd, shell=True)
-    cmd = "sudo python3 /home/ubuntu/ansible/indep_node_alarm_check.py"
-    subprocess.check_output(cmd, shell=True)
+    #cmd = "sudo <chain deamon> version --long > /home/ubuntu/ansible/<chain deamon>_version.out"
+    #subprocess.check_output(cmd, shell=True)
+    #cmd = "sudo <chaincli deamon> version --long > /home/ubuntu/ansible/<chaincli deamon>_version.out"
+    #subprocess.check_output(cmd, shell=True)
+    #cmd = "sudo python3 /home/ubuntu/ansible/indep_node_alarm_check.py"
+    #subprocess.check_output(cmd, shell=True)
 
     alarm = False
     alarm_content = ""
