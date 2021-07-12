@@ -7,17 +7,20 @@ import shutil
 
 telegram_token = ""
 telegram_chat_id = ""
+pypd.service_key = ""
+pypd.href = ""
+
 my_validator_address = ""
-pypd.api_key = ""
+node_name = "<nodename>"
 
 height_increasing_time_period = 600
 missing_block_trigger = 10
+
 try:
     status = json.loads(requests.get("http://localhost:26657/status").text)
     last_height = int(status["result"]["sync_info"]["latest_block_height"])
 except:
     last_height = 0
-node_name = "<nodename>"
 
 while True:
     
@@ -72,13 +75,13 @@ while True:
     if alarm:
 
         result = pypd.Event.create(data={
-            'service_key': '',
+            'service_key': pypd.service_key,
             'event_type': 'trigger',
             'description': alarm_content,
             'contexts': [
                   {
                       'type': 'link',
-                      'href': '',
+                      'href': pypd.href,
                       'text': 'View in Control Server',
                   },
             ],

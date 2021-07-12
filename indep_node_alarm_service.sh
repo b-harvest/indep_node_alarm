@@ -1,10 +1,10 @@
-cd /home/ubuntu/ansible;echo "[Unit]
+cd /home/ubuntu/indep_node_alarm;echo "[Unit]
 Description=indep_node_alarm
 After=network-online.target
 [Service]
 User=ubuntu
-WorkingDirectory=/home/ubuntu/ansible
-ExecStart=/usr/bin/python3 /home/ubuntu/ansible/indep_node_alarm.py
+WorkingDirectory=/home/ubuntu/indep_node_alarm
+ExecStart=/usr/bin/python3 /home/ubuntu/indep_node_alarm/indep_node_alarm.py
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=indep_node_alarm
