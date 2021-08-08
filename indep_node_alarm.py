@@ -7,6 +7,7 @@ import shutil
 
 telegram_token = ""
 telegram_chat_id = ""
+pypd.api_key = ""
 pypd.service_key = ""
 pypd.href = ""
 
