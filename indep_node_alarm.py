@@ -2,7 +2,6 @@ import json
 import time
 import requests # sudo pip3 install requests
 import pypd # sudo pip3 install pypd
-import subprocess
 import shutil
 
 telegram_token = ""
@@ -71,7 +70,7 @@ while True:
                 alarm_content = node_name + ": chain daemon dead!"
         if missing_block_cnt >= missing_block_trigger:
             alarm = True
-            alarm_content = node_name + ": missing blocks >= 10"
+            alarm_content = node_name + ": missing blocks >= " + str(missing_block_trigger)
 
     if alarm:
 
