@@ -14,7 +14,11 @@ while True:
 
     if nodealarm_status != "active":
 
-        alarm_content = "indep_node_alarm is NOT active, check this node : " + node_name
+        result = subprocess.check_output("sudo systemctl start indep_node_alarm", shell=True)
+        if result != "" :
+            alarm_content = "indep_node_alarm has started : " + node_name
+        else:
+            alarm_content = "indep_node_alarm is NOT active, check this node : " + node_name
 
         try:
             requestURL = "https://api.telegram.org/bot" + str(telegram_token) + "/sendMessage?chat_id=" + telegram_chat_id + "&text="
