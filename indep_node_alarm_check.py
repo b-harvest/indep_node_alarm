@@ -27,7 +27,7 @@ while True:
         except:
             pass
 
-    daemon_name = "daemonname"
+    daemon_name = "<daemonname>"
     daemon_status = subprocess.check_output(eval(f'f"""service {daemon_name} status | grep Active"""'), shell=True).decode('utf-8')
     daemon_status = str(daemon_status).split(":")[1].strip()[:6]
 
