@@ -23,8 +23,7 @@ def main() :
 
     node_list = []
 
-    node_list.append(NodeInfo("Juno", "http://localhost:15657", ""))
-    node_list.append(NodeInfo("Stargaze", "http://localhost:16657", ""))
+    node_list.append(NodeInfo("<chainname>", "http://localhost:26657", ""))
     
     while True:
 
@@ -33,7 +32,6 @@ def main() :
 
         # Last Height Check
         node_list[0].get_last_height()
-        node_list[1].get_last_height()
         
         # ***** Wait ***** 
         time.sleep(height_increasing_time_period)
@@ -44,11 +42,6 @@ def main() :
         node_list[0].check_block_missing()
         node_list[0].update_last_height()
 
-        node_list[1].get_current_height()        
-        node_list[1].check_height_stuck()
-        node_list[1].check_block_missing()
-        node_list[1].update_last_height()
-  
 
 class NodeInfo:
 
@@ -116,7 +109,7 @@ class NodeInfo:
 
         if missing_block_cnt >= missing_block_trigger:
             
-            alarm_content = f'{node_name} : {self.chain} - missing block count({missing_block_cnt}) >=  threshold ({missing_block_trigger})'
+            alarm_content = f'{node_name} : {self.chain} - missing block count({missing_block_cnt}) >=  threshold({missing_block_trigger})'
             send_alarm(True, True, alarm_content)
 
 ## Functions
