@@ -1,5 +1,7 @@
 import json
+from sre_constants import NOT_LITERAL
 import time
+from turtle import Turtle
 import requests # sudo pip3 install requests
 import pypd # sudo pip3 install pypd
 import shutil
@@ -15,66 +17,122 @@ node_name = "<nodename>"
 
 height_increasing_time_period = 600
 missing_block_trigger = 10
+free_disk_trigger = 10 # GB
 
-try:
-    status = json.loads(requests.get("http://localhost:26657/status").text)
-    last_height = int(status["result"]["sync_info"]["latest_block_height"])
-except:
-    last_height = 0
+def main() :
 
-while True:
+    node_list = []
+
+    node_list.append(NodeInfo("Juno", "http://localhost:15657", ""))
+    node_list.append(NodeInfo("Stargaze", "http://localhost:16657", ""))
     
-    time.sleep(height_increasing_time_period)
+    while True:
 
-    #cmd = "sudo <chain deamon> version --long > /home/ubuntu/ansible/<chain deamon>_version.out"
-    #subprocess.check_output(cmd, shell=True)
-    #cmd = "sudo <chaincli deamon> version --long > /home/ubuntu/ansible/<chaincli deamon>_version.out"
-    #subprocess.check_output(cmd, shell=True)
-    #cmd = "sudo python3 /home/ubuntu/ansible/indep_node_alarm_check.py"
-    #subprocess.check_output(cmd, shell=True)
+        # Disk Free Check
+        check_freedisk()
 
-    alarm = False
-    alarm_content = ""
+        # Last Height Check
+        node_list[0].get_last_height()
+        node_list[1].get_last_height()
+        
+        # ***** Wait ***** 
+        time.sleep(height_increasing_time_period)
+
+        # Check : height stuck, block missing (if validator address is provided)
+        node_list[0].get_current_height()
+        node_list[0].check_height_stuck()
+        node_list[0].check_block_missing()
+        node_list[0].update_last_height()
+
+        node_list[1].get_current_height()        
+        node_list[1].check_height_stuck()
+        node_list[1].check_block_missing()
+        node_list[1].update_last_height()
+  
+
+class NodeInfo:
+
+    def __init__(self, chain, rpc_url, validator_address):
+        self.chain = chain
+        self.rpc_url = rpc_url
+        self.last_height = 0
+        self.current_height = 0
+        self.validator_address = validator_address
+
+    def get_last_height(self):
+        try:
+            status = json.loads(requests.get(self.rpc_url + "/status", timeout=5).text)
+            last_height = int(status["result"]["sync_info"]["latest_block_height"])
+
+            self.last_height = last_height
+
+        except Exception as e:
+            alarm_content = f'{node_name} : {self.chain} - get_last_height - Exception: {e}'
+            send_alarm(False, True, alarm_content)
+
+    def get_current_height(self):
+        try:
+            status = json.loads(requests.get(self.rpc_url + "/status", timeout=5).text)
+            current_height = int(status["result"]["sync_info"]["latest_block_height"])
+
+            self.current_height = current_height
+
+        except Exception as e:
+            alarm_content = f'{node_name} : {self.chain} - get_current_height - Exception: {e}'
+            send_alarm(False, True, alarm_content)
+      
+    def update_last_height(self):
+        self.last_height = self.current_height
+
+    def check_height_stuck(self): 
+
+        if self.last_height == self.current_height :
+            alarm_content = node_name + ": height stucked!"
+            send_alarm(True, True, alarm_content)
+
+
+    def check_block_missing(self):
+
+        if self.validator_address == "":
+            return
+
+        missing_block_cnt = 0
+
+        for height in range(self.last_height+1, self.current_height+1):
+            precommit_match = False
+            precommits = json.loads(requests.get(self.rpc_url + "/commit?height=" + str(height), timeout=5).text)["result"]["signed_header"]["commit"]["signatures"]
+            
+            for precommit in precommits:
+                try:
+                    validator_address = precommit["validator_address"]
+                except:
+                    validator_address = ""
+                if validator_address == my_validator_address:
+                    precommit_match = True
+                    break
+
+            if precommit_match == False:
+                missing_block_cnt += 1
+
+        if missing_block_cnt >= missing_block_trigger:
+            
+            alarm_content = f'{node_name} : {self.chain} - missing block count({missing_block_cnt}) >=  threshold ({missing_block_trigger})'
+            send_alarm(True, True, alarm_content)
+
+## Functions
+def check_freedisk():
     total, used, free = shutil.disk_usage("/")
     
-    try:
-        current_height = int(json.loads(requests.get("http://localhost:26657/status").text)["result"]["sync_info"]["latest_block_height"])
-    except:
-        current_height = last_height
-    if (free//(2**30)) < 10:
-        alarm = True
-        alarm_content = node_name + ": disk free 9GB"
-    # height doesn't change
-    if current_height == last_height:
-        alarm = True
-        alarm_content = node_name + ": height stucked!"
-    else:
-        # missing count
-        missing_block_cnt = 0
-        for height in range(last_height+1,current_height+1):
-            precommit_match = False
-            try:
-                precommits = json.loads(requests.get("http://localhost:26657/commit?height=" + str(height)).text)["result"]["signed_header"]["commit"]["signatures"]
-                for precommit in precommits:
-                    try:
-                        validator_address = precommit["validator_address"]
-                    except:
-                        validator_address = ""
-                    if validator_address == my_validator_address:
-                        precommit_match = True
-                        break
-                if precommit_match == False:
-                    missing_block_cnt += 1
-            except:
-                alarm = True
-                alarm_content = node_name + ": chain daemon dead!"
-        if missing_block_cnt >= missing_block_trigger:
-            alarm = True
-            alarm_content = node_name + " : missing block count(" + str(missing_block_cnt) + ") >=  threshold (" + str(missing_block_trigger) + ")"
+    if (free//(2**30)) < free_disk_trigger:
+        alarm_content = f'{node_name} : disk free is less than {free_disk_trigger} GB'
+        send_alarm(True, True, alarm_content)
 
-    if alarm:
 
-        result = pypd.Event.create(data={
+def send_alarm(b_pagerduty, b_telegram, alarm_content) :
+
+    if b_pagerduty:
+
+        pypd.Event.create(data={
             'service_key': pypd.service_key,
             'event_type': 'trigger',
             'description': alarm_content,
@@ -87,11 +145,15 @@ while True:
             ],
         })
 
+    if b_telegram:
         try:
             requestURL = "https://api.telegram.org/bot" + str(telegram_token) + "/sendMessage?chat_id=" + telegram_chat_id + "&text="
             requestURL = requestURL + str(alarm_content)
-            response = requests.get(requestURL, timeout=1)
-        except:
-            pass
+            requests.get(requestURL, timeout=5)
+        except Exception as e:
+            print(f'Exception: {e}')    
 
-    last_height = current_height
+
+if __name__ == "__main__":
+    main()
+

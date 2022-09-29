@@ -8,37 +8,40 @@ telegram_chat_id = ""
 node_name = "<nodename>"
 check_internal = 300
 
-while True:
-    nodealarm_status = subprocess.check_output("service indep_node_alarm status | grep Active", shell=True).decode('utf-8')
-    nodealarm_status = str(nodealarm_status).split(":")[1].strip()[:6]
 
-    if nodealarm_status != "active":
+def main() :
+    while True:
+        check_daemon("indep_node_alarm")
+        #check_daemon("<daemonname>")
 
-        result = subprocess.check_output("sudo systemctl start indep_node_alarm", shell=True)
-        if result != "" :
-            alarm_content = "indep_node_alarm has started : " + node_name
-        else:
-            alarm_content = "indep_node_alarm is NOT active, check this node : " + node_name
+        time.sleep(check_internal)
 
-        try:
-            requestURL = "https://api.telegram.org/bot" + str(telegram_token) + "/sendMessage?chat_id=" + telegram_chat_id + "&text="
-            requestURL = requestURL + str(alarm_content)
-            response = requests.get(requestURL, timeout=1)
-        except:
-            pass
 
-    daemon_name = "<daemonname>"
+def check_daemon(daemon_name):
+
     daemon_status = subprocess.check_output(eval(f'f"""service {daemon_name} status | grep Active"""'), shell=True).decode('utf-8')
     daemon_status = str(daemon_status).split(":")[1].strip()[:6]
 
     if daemon_status != "active":
-        alarm_content = daemon_name + " is NOT active, check this node : " + node_name
- 
-        try:
-            requestURL = "https://api.telegram.org/bot" + str(telegram_token) + "/sendMessage?chat_id=" + telegram_chat_id + "&text="
-            requestURL = requestURL + str(alarm_content)
-            response = requests.get(requestURL, timeout=1)
-        except:
-            pass
 
-    time.sleep(check_internal)
+        if daemon_name == "indep_node_alarm":
+            subprocess.check_output(eval(f'f"""sudo systemctl start {daemon_name}"""'), shell=True)
+            alarm_content = daemon_name + " has started : " + node_name
+            send_alarm(alarm_content)
+
+        else:
+            alarm_content = daemon_name + " is NOT active, check this node : " + node_name
+            send_alarm(alarm_content)
+
+
+def send_alarm(alarm_content):
+    try:
+        requestURL = "https://api.telegram.org/bot" + str(telegram_token) + "/sendMessage?chat_id=" + telegram_chat_id + "&text=" + str(alarm_content)
+        requests.get(requestURL, timeout=3)
+
+    except Exception as e:
+        print(f'Exception: {e}')
+
+
+if __name__ == "__main__":
+    main()
