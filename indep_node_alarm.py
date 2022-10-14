@@ -1,7 +1,5 @@
 import json
-from sre_constants import NOT_LITERAL
 import time
-from turtle import Turtle
 import requests # sudo pip3 install requests
 import pypd # sudo pip3 install pypd
 import shutil
