@@ -29,16 +29,18 @@ def main() :
         check_freedisk()
 
         # Last Height Check
-        node_list[0].get_last_height()
-        
-        # ***** Wait ***** 
+        for node in node_list:
+            node.get_last_height()
+
+        # ***** Wait *****
         time.sleep(height_increasing_time_period)
 
-        # Check : height stuck, block missing (if validator address is provided)
-        node_list[0].get_current_height()
-        node_list[0].check_height_stuck()
-        node_list[0].check_block_missing()
-        node_list[0].update_last_height()
+        # Check : stuck, block missing
+        for node in node_list:
+            node.get_current_height()
+            node.check_height_stuck()
+            node.check_block_missing()
+            node.update_last_height()
 
 
 class NodeInfo:
