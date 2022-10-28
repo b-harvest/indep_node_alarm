@@ -18,7 +18,7 @@ sudo -H pip3 install -r requirements.txt
 
 ```
 
-## Customize as you need
+## Customize as your need
 
 ```bash
 
