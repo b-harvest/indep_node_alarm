@@ -113,8 +113,8 @@ class NodeInfo:
             send_alarm(True, True, alarm_content)
 
 ## Functions
-def check_freedisk():
-    total, used, free = shutil.disk_usage("/")
+def check_freedisk(disk_location):
+    total, used, free = shutil.disk_usage(disk_location)
     
     if (free//(2**30)) < free_disk_trigger:
         alarm_content = f'{node_name} : disk free is less than {free_disk_trigger} GB'
