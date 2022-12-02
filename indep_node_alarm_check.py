@@ -12,7 +12,7 @@ check_internal = 300
 def main() :
     while True:
         check_daemon("indep_node_alarm")
-        check_daemon("<daemonname>")
+        check_daemon("<chainname>")
 
         time.sleep(check_internal)
 

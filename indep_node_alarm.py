@@ -21,7 +21,7 @@ def main() :
 
     node_list = []
 
-    node_list.append(NodeInfo("<chainname>", "http://localhost:26657", ""))
+    node_list.append(NodeInfo("<chainname>", "http://localhost:26657", my_validator_address))
     
     while True:
 
