@@ -26,7 +26,8 @@ def main() :
     while True:
 
         # Disk Free Check
-        check_freedisk()
+        check_freedisk("/")
+        check_freedisk("/data")
 
         # Last Height Check
         for node in node_list:
