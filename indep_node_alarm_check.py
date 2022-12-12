@@ -19,13 +19,13 @@ def main() :
 
 def check_daemon(daemon_name):
 
-    daemon_status = subprocess.check_output(eval(f'f"""service {daemon_name} status | grep Active"""'), shell=True).decode('utf-8')
+    daemon_status = subprocess.check_output(eval(f'f"""service {<servicename>} status | grep Active"""'), shell=True).decode('utf-8')
     daemon_status = str(daemon_status).split(":")[1].strip()[:6]
 
     if daemon_status != "active":
 
         if daemon_name == "indep_node_alarm":
-            subprocess.check_output(eval(f'f"""sudo systemctl start {daemon_name}"""'), shell=True)
+            subprocess.check_output(eval(f'f"""sudo systemctl start {<servicename>}"""'), shell=True)
             alarm_content = daemon_name + " has started : " + node_name
             send_alarm(alarm_content)
 
