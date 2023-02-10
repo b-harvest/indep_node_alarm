@@ -35,7 +35,7 @@ def check_daemon(daemon_name):
 
 def check_process(process_name):
 
-    proc = subprocess.Popen('pgrep firefox', shell=True, stdout=subprocess.PIPE)
+    proc = subprocess.Popen(eval(f'f"""pgrep {process_name}"""'), shell=True, stdout=subprocess.PIPE)
     out, err = proc.communicate(15)
 
     if len(out)==0 :
