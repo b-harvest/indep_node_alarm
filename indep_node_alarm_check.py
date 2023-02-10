@@ -33,6 +33,15 @@ def check_daemon(daemon_name):
             alarm_content = daemon_name + " is NOT active, check this node : " + node_name
             send_alarm(alarm_content)
 
+def check_process(process_name):
+
+    status = str(subprocess.check_output(eval(f'f"""pgrep {process_name}"""'), shell=True).decode('utf-8'))
+
+    if status == "":
+
+        alarm_content = process_name + " is NOT active, check this node : " + node_name
+        send_alarm(alarm_content)
+
 
 def send_alarm(alarm_content):
     try:
