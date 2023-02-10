@@ -35,10 +35,10 @@ def check_daemon(daemon_name):
 
 def check_process(process_name):
 
-    status = str(subprocess.check_output(eval(f'f"""pgrep {process_name}"""'), shell=True).decode('utf-8'))
+    proc = subprocess.Popen('pgrep firefox', shell=True, stdout=subprocess.PIPE)
+    out, err = proc.communicate(15)
 
-    if status == "":
-
+    if len(out)==0 :
         alarm_content = process_name + " is NOT active, check this node : " + node_name
         send_alarm(alarm_content)
 
