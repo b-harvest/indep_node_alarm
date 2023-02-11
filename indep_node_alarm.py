@@ -39,6 +39,7 @@ def main() :
         # Check : stuck, block missing
         for node in node_list:
             if node.get_current_height() :
+                node.get_current_height()
                 node.check_height_stuck()
                 node.check_block_missing()
                 node.update_last_height()
