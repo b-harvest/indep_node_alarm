@@ -38,10 +38,10 @@ def main() :
 
         # Check : stuck, block missing
         for node in node_list:
-            node.get_current_height()
-            node.check_height_stuck()
-            node.check_block_missing()
-            node.update_last_height()
+            if node.get_current_height() :
+                node.check_height_stuck()
+                node.check_block_missing()
+                node.update_last_height()
 
 
 class NodeInfo:
@@ -66,14 +66,16 @@ class NodeInfo:
 
     def get_current_height(self):
         try:
-            status = json.loads(requests.get(self.rpc_url + "/status", timeout=5).text)
+            status = json.loads(requests.get(self.rpc_url + "/status", timeout=15).text)
             current_height = int(status["result"]["sync_info"]["latest_block_height"])
 
             self.current_height = current_height
+            return True
 
         except Exception as e:
             alarm_content = f'{node_name} : {self.chain} - get_current_height - Exception: {e}'
             send_alarm(False, True, alarm_content)
+            return False
       
     def update_last_height(self):
         self.last_height = self.current_height
