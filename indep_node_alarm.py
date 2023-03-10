@@ -103,7 +103,7 @@ class NodeInfo:
                     validator_address = precommit["validator_address"]
                 except:
                     validator_address = ""
-                if validator_address == my_validator_address:
+                if validator_address == self.validator_address:
                     precommit_match = True
                     break
 
