@@ -4,6 +4,12 @@ import requests # sudo pip3 install requests
 import pypd # sudo pip3 install pypd
 import shutil
 
+from urllib3.util.retry import Retry
+from requests.adapters import HTTPAdapter
+from requests import Session
+
+retries = Retry(total=10, connect=8, read=2, backoff_factor=0.2, status_forcelist=[500, 502, 503, 504, 429])
+
 telegram_token = ""
 telegram_chat_id = ""
 pypd.api_key = ""
@@ -38,7 +44,7 @@ def main() :
 
         # Check : stuck, block missing
         for node in node_list:
-            if node.get_current_height() :
+            if node.get_current_height():
                 node.check_height_stuck()
                 node.check_block_missing()
                 node.update_last_height()
@@ -54,28 +60,31 @@ class NodeInfo:
         self.validator_address = validator_address
 
     def get_last_height(self):
-        try:
-            status = json.loads(requests.get(self.rpc_url + "/status", timeout=5).text)
-            last_height = int(status["result"]["sync_info"]["latest_block_height"])
-
-            self.last_height = last_height
-
-        except Exception as e:
-            alarm_content = f'{node_name} : {self.chain} - get_last_height - Exception: {e}'
-            send_alarm(False, True, alarm_content)
+        with Session() as sess:
+            try:
+                sess.mount('http://',  HTTPAdapter(max_retries=retries))
+                sess.mount('https://', HTTPAdapter(max_retries=retries))
+                status = json.loads(sess.get(self.rpc_url + "/status").text)
+                last_height = int(status["result"]["sync_info"]["latest_block_height"])
+                self.last_height = last_height
+            except Exception as e:
+                alarm_content = f'{node_name} : {self.chain} - get_last_height - Exception: {e}'
+                send_alarm(False, True, alarm_content)
 
     def get_current_height(self):
-        try:
-            status = json.loads(requests.get(self.rpc_url + "/status", timeout=15).text)
-            current_height = int(status["result"]["sync_info"]["latest_block_height"])
-
-            self.current_height = current_height
-            return True
-
-        except Exception as e:
-            alarm_content = f'{node_name} : {self.chain} - get_current_height - Exception: {e}'
-            send_alarm(False, True, alarm_content)
-            return False
+        with Session() as sess:
+            try:
+                sess.mount('http://',  HTTPAdapter(max_retries=retries))
+                sess.mount('https://', HTTPAdapter(max_retries=retries))
+                status = json.loads(sess.get(self.rpc_url + "/status").text)
+                current_height = int(status["result"]["sync_info"]["latest_block_height"])
+                self.current_height = current_height
+                return True
+            
+            except Exception as e:
+                alarm_content = f'{node_name} : {self.chain} - get_current_height - Exception: {e}'
+                send_alarm(False, True, alarm_content)
+                return False
       
     def update_last_height(self):
         self.last_height = self.current_height
@@ -152,4 +161,3 @@ def send_alarm(b_pagerduty, b_telegram, alarm_content) :
 
 if __name__ == "__main__":
     main()
-
